@@ -855,16 +855,27 @@ function viewMemberProfile(memberId) {
 }
 
 // ==========================================================================
-// Modal Helpers
+// Modal Helpers (With Background Scroll Locking)
 // ==========================================================================
 function openModal(modalId) {
     const el = document.getElementById(modalId);
-    if (el) el.classList.add('active');
+    if (el) {
+        el.classList.add('active');
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden'; // Stop background page from scrolling
+    }
 }
 
 function closeModal(modalId) {
     const el = document.getElementById(modalId);
-    if (el) el.classList.remove('active');
+    if (el) {
+        el.classList.remove('active');
+        const activeModals = document.querySelectorAll('.modal-overlay.active');
+        if (activeModals.length === 0) {
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = ''; // Restore background scroll
+        }
+    }
 }
 
 function closeModalOnOverlay(e, modalId) {
