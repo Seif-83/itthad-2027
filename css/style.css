@@ -317,136 +317,136 @@ body {
     100% { transform: scale(0.9); opacity: 0.7; }
 }
 
-/* Unified Leadership Badge (سيف وتيتو قيادة واحدة) */
-.unified-leadership-badge {
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: var(--radius-full);
-    padding: 0.35rem 0.85rem 0.35rem 0.45rem;
-    backdrop-filter: blur(10px);
-    transition: var(--transition);
-}
-
-.unified-leadership-badge:hover {
-    border-color: rgba(0, 242, 254, 0.35);
-    background: rgba(255, 255, 255, 0.07);
-}
-
-.leadership-avatars-cluster {
-    display: flex;
-    align-items: center;
-}
-
-.leader-dot {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8rem;
-    font-weight: 800;
-    color: #000;
-    border: 2px solid #0d1527;
-    margin-right: -8px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-}
-
-.leader-dot.seif {
-    background: var(--grad-gold);
-    z-index: 2;
-}
-
-.leader-dot.tito {
-    background: var(--grad-primary);
-    z-index: 1;
-}
-
-.leadership-text {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-}
-
-.lead-role {
-    font-size: 0.68rem;
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-weight: 600;
-}
-
-.lead-names {
-    font-size: 0.84rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    white-space: nowrap;
-}
-
 /* ==========================================================================
-   Executive Welcome Banner
+   Executive Leadership Duo Banner (سيف عمرو & علي تيتو)
    ========================================================================== */
 .exec-welcome-card {
     margin-top: 1.5rem;
-    padding: 1.25rem 1.75rem;
-    background: linear-gradient(135deg, rgba(0, 242, 254, 0.07) 0%, rgba(139, 92, 246, 0.07) 100%);
-    border: 1px solid rgba(0, 242, 254, 0.2);
-    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, rgba(13, 21, 39, 0.95) 0%, rgba(9, 14, 26, 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-xl);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
+}
+
+.leadership-duo-container {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1.5rem;
-    flex-wrap: wrap;
+    gap: 0.85rem;
+    width: 100%;
 }
 
-.exec-welcome-info {
+.leader-duo-card {
+    flex: 1;
     display: flex;
     align-items: center;
-    gap: 1.25rem;
+    gap: 0.85rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    padding: 0.85rem 1.15rem;
+    transition: var(--transition);
 }
 
-.unified-avatars-large {
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
+.leader-duo-card.president-duo {
+    border-right: 3.5px solid var(--accent-gold);
 }
 
-.avatar-large {
-    width: 52px;
-    height: 52px;
+.leader-duo-card.vice-duo {
+    border-right: 3.5px solid var(--accent-cyan);
+}
+
+.leader-avatar-badge {
+    width: 46px;
+    height: 46px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.4rem;
+    font-size: 1.3rem;
     font-weight: 800;
     color: #000;
-    border: 3px solid #0b1120;
-    margin-right: -15px;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+    flex-shrink: 0;
+    position: relative;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
 }
 
-.avatar-large.seif {
+.leader-avatar-badge.gold {
     background: var(--grad-gold);
-    z-index: 2;
 }
 
-.avatar-large.tito {
+.leader-avatar-badge.cyan {
     background: var(--grad-primary);
-    z-index: 1;
 }
 
-.exec-tag.tag-joint {
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(0, 242, 254, 0.2));
-    border: 1px solid rgba(0, 242, 254, 0.4);
-    color: #ffffff;
-    display: inline-flex;
+.role-mini-icon {
+    position: absolute;
+    bottom: -2px;
+    left: -2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #0f172a;
+    border: 1.5px solid #fff;
+    display: flex;
     align-items: center;
-    gap: 0.35rem;
+    justify-content: center;
+    font-size: 0.65rem;
+}
+
+.leader-avatar-badge.gold .role-mini-icon {
+    color: var(--accent-gold);
+}
+
+.leader-avatar-badge.cyan .role-mini-icon {
+    color: var(--accent-cyan);
+}
+
+.leader-duo-meta {
+    min-width: 0;
+    flex: 1;
+}
+
+.leader-duo-role {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.15rem;
+}
+
+.leader-duo-name {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+}
+
+.leader-duo-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.joint-badge {
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    background: rgba(0, 242, 254, 0.08);
+    border: 1px solid rgba(0, 242, 254, 0.25);
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--radius-full);
+    white-space: nowrap;
 }
 
 .exec-welcome-text h2 {
@@ -2187,50 +2187,61 @@ select option:checked {
         line-height: 1.3;
     }
 
-    /* Switcher bar and moon button side-by-side on phones */
-    /* Header Actions on phones: Cloud Sync & Leadership badge */
+    /* Header Actions on mobile */
     .header-actions {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-start;
         width: 100%;
         gap: 0.5rem;
-        flex-wrap: wrap;
-    }
-    .unified-leadership-badge {
-        flex: 1;
-        justify-content: flex-end;
-        padding: 0.3rem 0.65rem 0.3rem 0.35rem;
-    }
-    .lead-names {
-        font-size: 0.78rem;
     }
 
-    /* Welcome Greeting Card */
+    /* Executive Leadership Duo on Mobile: Clean 2-column cards */
     .exec-welcome-card {
-        padding: 0.85rem;
-        border-radius: var(--radius-md);
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.85rem;
-        margin-top: 1rem;
+        padding: 0.75rem !important;
+        border-radius: var(--radius-lg) !important;
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+        margin-top: 1rem !important;
     }
-    .exec-welcome-info {
-        gap: 0.75rem;
+
+    .leadership-duo-container {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 0.5rem !important;
+        width: 100% !important;
+        margin-bottom: 0 !important;
     }
-    .unified-avatars-large .avatar-large {
-        width: 40px;
-        height: 40px;
-        font-size: 1.1rem;
+
+    .leader-duo-center {
+        display: none !important;
     }
-    .exec-welcome-text h2 {
-        font-size: 0.98rem;
-        flex-wrap: wrap;
-        gap: 0.35rem;
+
+    .leader-duo-card {
+        padding: 0.65rem 0.6rem !important;
+        gap: 0.5rem !important;
+        border-radius: var(--radius-md) !important;
     }
-    .exec-welcome-text p {
-        font-size: 0.78rem;
-        line-height: 1.4;
+
+    .leader-avatar-badge {
+        width: 38px !important;
+        height: 38px !important;
+        font-size: 1.05rem !important;
+    }
+
+    .role-mini-icon {
+        width: 15px !important;
+        height: 15px !important;
+        font-size: 0.55rem !important;
+    }
+
+    .leader-duo-role {
+        font-size: 0.68rem !important;
+        white-space: nowrap !important;
+    }
+
+    .leader-duo-name {
+        font-size: 0.92rem !important;
     }
 
     /* Actions: 2x2 grid on mobile */
