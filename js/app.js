@@ -29,7 +29,7 @@ function initApp() {
     const savedTheme = localStorage.getItem('cds_union_theme') || 'dark';
     setTheme(savedTheme);
 
-    // 2. Load Stored Members reliably from localStorage (Never wiped on refresh)
+    // 2. Load Stored Members reliably from localStorage (Immediate offline cache)
     const savedMembers = localStorage.getItem('cds_union_members');
     if (savedMembers) {
         try {
@@ -51,6 +51,29 @@ function initApp() {
 
     // 4. Render Interface
     renderApp();
+
+    // 5. Connect Realtime Cloud Firestore Synchronization!
+    setupFirebaseSync();
+}
+
+function setupFirebaseSync() {
+    const attachListener = () => {
+        if (window.FirebaseSync && typeof window.FirebaseSync.initListener === 'function') {
+            window.FirebaseSync.initListener((cloudMembers) => {
+                if (Array.isArray(cloudMembers)) {
+                    appState.members = cloudMembers;
+                    saveMembersToStorage();
+                    renderApp();
+                }
+            });
+        }
+    };
+
+    if (window.FirebaseSync) {
+        attachListener();
+    } else {
+        window.addEventListener('FirebaseSyncReady', attachListener, { once: true });
+    }
 }
 
 function saveMembersToStorage() {
@@ -734,6 +757,7 @@ function handleSaveMember(e) {
     }
 
     const currentExec = getExecutiveName();
+    let memberToSync = null;
 
     if (appState.editingMemberId) {
         // Edit existing
@@ -753,6 +777,7 @@ function handleSaveMember(e) {
                 lastUpdatedBy: currentExec,
                 lastUpdatedAt: new Date().toISOString()
             };
+            memberToSync = appState.members[idx];
             showToast(`تم تحديث بيانات الطالب "${name}" بنجاح`, 'success');
         }
     } else {
@@ -772,6 +797,7 @@ function handleSaveMember(e) {
             createdAt: new Date().toISOString()
         };
         appState.members.push(newMember);
+        memberToSync = newMember;
         showToast(`تمت إضافة "${name}" إلى ${commName} بنجاح`, 'success');
     }
 
@@ -779,6 +805,13 @@ function handleSaveMember(e) {
     saveMembersToStorage();
     renderApp();
     closeModal('memberModal');
+
+    // Realtime Firebase Firestore Sync
+    if (memberToSync && window.FirebaseSync && typeof window.FirebaseSync.saveMember === 'function') {
+        window.FirebaseSync.saveMember(memberToSync).catch(err => {
+            console.warn("Firebase save sync error:", err);
+        });
+    }
 }
 
 // ==========================================================================
@@ -798,6 +831,13 @@ function confirmDeleteMember(memberId) {
         renderApp();
         showToast(`تم حذف الطالب "${member.name}"`, 'warning');
         closeModal('profileModal');
+
+        // Realtime Firebase Firestore Sync
+        if (window.FirebaseSync && typeof window.FirebaseSync.deleteMember === 'function') {
+            window.FirebaseSync.deleteMember(memberId).catch(err => {
+                console.warn("Firebase delete sync error:", err);
+            });
+        }
     }
 }
 
@@ -1099,12 +1139,20 @@ function handleImportBackup(e) {
 
 function clearAllMembers() {
     if (confirm('تنبيه هام:\nهل أنت متأكد من تصفير ومسح كافة الأعضاء المسجلين في الاتحاد (0 أعضاء)؟\nلن يتم إضافة أي طالب إلا بقرار منك أو من نائب الرئيس.')) {
+        const toClear = [...appState.members];
         appState.members = [];
         saveMembersToStorage();
         playAudioFeedback('delete');
         renderApp();
         showToast('تم تصفير جميع أعضاء ولجان الاتحاد بنجاح (0 أعضاء)', 'warning');
         closeModal('backupModal');
+
+        // Realtime Firebase Firestore Sync
+        if (window.FirebaseSync && typeof window.FirebaseSync.clearAll === 'function') {
+            window.FirebaseSync.clearAll(toClear).catch(err => {
+                console.warn("Firebase clear sync error:", err);
+            });
+        }
     }
 }
 

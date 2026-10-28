@@ -50,6 +50,12 @@
                 </div>
 
                 <div class="header-actions">
+                    <!-- Cloud Realtime Sync Status Badge -->
+                    <div id="cloudSyncStatusBadge" class="cloud-sync-badge" title="جاري الاتصال بالسحابة...">
+                        <span class="pulse-dot"></span>
+                        <span>مزامنة سحابية</span>
+                    </div>
+
                     <!-- Profile Switcher for Seif & Tito -->
                     <div class="executive-switch-box">
                         <span class="exec-label">
@@ -247,12 +253,10 @@
                 <!-- Top Leaders -->
                 <div class="org-top-leaders">
                     <div class="org-leader-card president-card">
-                        <div class="org-leader-avatar">س</div>
                         <h3>سيف عمرو</h3>
                         <p class="role-desc">رئيس اتحاد طلاب كلية الحاسبات وعلوم البيانات</p>
                     </div>
                     <div class="org-leader-card vice-card">
-                        <div class="org-leader-avatar">ع</div>
                         <h3>علي تيتو</h3>
                         <p class="role-desc">نائب رئيس اتحاد طلاب كلية الحاسبات وعلوم البيانات</p>
                     </div>
@@ -567,6 +571,7 @@
 
     <!-- Scripts -->
     <script src="js/data.js"></script>
+    <script type="module" src="js/firebase-service.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
