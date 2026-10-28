@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>اتحاد طلاب حاسبات وعلوم البيانات 2027 | المنصة الرسمية</title>
     <meta name="description" content="البوابة الرسمية لإدارة وتوزيع لجان وأعضاء اتحاد طلاب كلية الحاسبات وعلوم البيانات - قيادة رئيس الاتحاد سيف عمرو ونائب الرئيس علي تيتو">
     
@@ -87,7 +87,7 @@
                             <span class="exec-tag tag-president" id="currentExecRoleBadge">رئيس الاتحاد</span>
                         </h2>
                         <p id="currentExecQuote">
-                            جاهز لإدارة لجان الاتحاد السبع وتسكين الـ 8 أفراد في كل لجنة مع الأمين والأمين المساعد!
+                            جاهز لإدارة لجان الاتحاد السبع وتسكين الـ 6 أفراد في كل لجنة مع الأمين والأمين المساعد!
                         </p>
                     </div>
                 </div>
@@ -222,9 +222,10 @@
             <!-- Cards generated dynamically via JavaScript -->
         </main>
 
-        <!-- VIEW 2: Master Table View -->
+        <!-- VIEW 2: Master Table & Mobile Blocks View -->
         <section id="viewTable" class="table-view-container" style="display: none;">
-            <div class="table-responsive">
+            <!-- Desktop Comprehensive Table View -->
+            <div class="table-responsive desktop-only-table">
                 <table class="members-master-table">
                     <thead>
                         <tr>
@@ -241,9 +242,14 @@
                         </tr>
                     </thead>
                     <tbody id="masterTableBody">
-                        <!-- Table rows populated dynamically -->
+                        <!-- Table rows populated dynamically for desktop -->
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Mobile Blocks / Cards View (بدون اسكرول يمين وشمال على الموبايل) -->
+            <div class="mobile-members-blocks" id="masterMobileBlocks">
+                <!-- Mobile blocks populated dynamically -->
             </div>
         </section>
 
@@ -316,7 +322,7 @@
                         <div class="form-group">
                             <label class="form-label" for="formRole">المنصب داخل اللجنة *</label>
                             <select id="formRole" class="form-select" required>
-                                <option value="member" selected>عضو لجنة (من الـ 8 أفراد)</option>
+                                <option value="member" selected>عضو لجنة (من الـ 6 أفراد)</option>
                                 <option value="head">أمين اللجنة (رئيس اللجنة)</option>
                                 <option value="vice_head">أمين مساعد اللجنة</option>
                             </select>

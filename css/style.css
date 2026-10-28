@@ -1219,6 +1219,312 @@ body {
     font-weight: 600;
 }
 
+/* Dual Table / Blocks Display Modes */
+.desktop-only-table {
+    display: block;
+}
+
+.mobile-members-blocks {
+    display: none;
+}
+
+/* Mobile Member Blocks (Cards - بدون اسكرول يمين وشمال على الموبايل والأيفون) */
+.mobile-member-card {
+    background: #0d1527;
+    background: linear-gradient(145deg, rgba(13, 21, 39, 0.95) 0%, rgba(9, 14, 26, 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-right: 4px solid var(--card-comm-color, var(--accent-cyan));
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-member-card:active {
+    transform: scale(0.99);
+}
+
+.mobile-member-card.role-head {
+    border-right-color: var(--accent-gold);
+    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.15);
+}
+
+.mobile-member-card.role-vice_head {
+    border-right-color: var(--accent-cyan);
+    box-shadow: 0 8px 25px rgba(0, 242, 254, 0.15);
+}
+
+.mobile-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.mobile-card-lead {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+    flex: 1;
+}
+
+.mobile-card-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: 800;
+    flex-shrink: 0;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.mobile-card-title-box {
+    min-width: 0;
+    flex: 1;
+}
+
+.mobile-card-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+}
+
+.mobile-card-name:hover {
+    color: var(--accent-cyan);
+}
+
+.mobile-card-comm {
+    font-size: 0.82rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.25rem;
+}
+
+.mobile-card-badges {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.35rem;
+    flex-shrink: 0;
+}
+
+.mobile-card-idx {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.06);
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius-full);
+}
+
+.mobile-role-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius-full);
+    white-space: nowrap;
+}
+
+.mobile-role-tag.head {
+    background: rgba(245, 158, 11, 0.18);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.5);
+}
+
+.mobile-role-tag.vice_head {
+    background: rgba(0, 242, 254, 0.15);
+    color: #38bdf8;
+    border: 1px solid rgba(0, 242, 254, 0.45);
+}
+
+.mobile-role-tag.member {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.mobile-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 0.75rem 0.85rem;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.mobile-card-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem 0.75rem;
+}
+
+.mobile-info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.82rem;
+    min-width: 0;
+}
+
+.mobile-info-item .info-label {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+.mobile-info-item .info-val {
+    color: #ffffff;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mobile-info-item .font-highlight {
+    color: var(--accent-cyan);
+    font-weight: 700;
+}
+
+.mobile-info-item .mono-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+}
+
+.mobile-phone-link {
+    color: #38bdf8;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.mobile-card-note {
+    font-size: 0.8rem;
+    color: #cbd5e1;
+    background: rgba(255, 255, 255, 0.04);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.45rem;
+    line-height: 1.4;
+    border-right: 2px solid rgba(0, 242, 254, 0.5);
+}
+
+.mobile-card-note i {
+    color: var(--accent-gold);
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.mobile-card-footer {
+    display: flex;
+    flex-direction: column;
+}
+
+.mobile-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    width: 100%;
+}
+
+.btn-mobile-act {
+    flex: 1;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    font-family: inherit;
+    font-size: 0.84rem;
+    font-weight: 700;
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: var(--transition);
+    padding: 0.45rem 0.25rem;
+    box-sizing: border-box;
+}
+
+.btn-mobile-act.view-act {
+    background: rgba(0, 242, 254, 0.14);
+    color: #00f2fe;
+    border: 1px solid rgba(0, 242, 254, 0.35);
+}
+
+.btn-mobile-act.edit-act {
+    background: rgba(255, 255, 255, 0.08);
+    color: #f1f5f9;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.btn-mobile-act.wa-act {
+    background: rgba(37, 211, 102, 0.15);
+    color: #25d366;
+    border: 1px solid rgba(37, 211, 102, 0.4);
+}
+
+.btn-mobile-act.del-act {
+    background: rgba(239, 68, 68, 0.14);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.empty-mobile-blocks {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: var(--text-muted);
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--radius-lg);
+    border: 1px dashed var(--border-subtle);
+}
+
+.empty-mobile-blocks i {
+    font-size: 2.5rem;
+    color: var(--accent-cyan);
+    opacity: 0.5;
+    margin-bottom: 0.75rem;
+    display: block;
+}
+
+.empty-mobile-blocks p {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 0.35rem;
+}
+
+.empty-mobile-blocks span {
+    font-size: 0.82rem;
+}
+
 /* ==========================================================================
    Organizational Tree / Hierarchy View (الهيكل التنظيمي)
    ========================================================================== */
@@ -1808,8 +2114,18 @@ select option:checked {
 }
 
 @media (max-width: 768px) {
+    html {
+        -webkit-text-size-adjust: 100%;
+        scroll-behavior: smooth;
+    }
+    body {
+        overflow-x: hidden !important;
+        -webkit-font-smoothing: antialiased;
+        -webkit-tap-highlight-color: transparent;
+    }
     .app-container {
-        padding: 0.75rem 0.75rem 3rem;
+        overflow-x: hidden !important;
+        padding: max(0.75rem, env(safe-area-inset-top)) max(0.75rem, env(safe-area-inset-right)) max(3.5rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
     }
     .main-header {
         padding: 1rem 0.85rem;
@@ -2013,6 +2329,36 @@ select option:checked {
         font-size: 0.78rem !important;
     }
 
+    /* iOS Native Select styling fix */
+    .filter-select, .form-select {
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        appearance: none !important;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2300f2fe%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E") !important;
+        background-repeat: no-repeat !important;
+        background-position: left 0.75rem center !important;
+        background-size: 14px !important;
+        padding-left: 2rem !important;
+    }
+
+    /* Master Table -> Mobile Blocks (بدون اسكرول يمين وشمال على الموبايل والأيفون) */
+    .table-view-container {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin-bottom: 2rem !important;
+    }
+    .desktop-only-table {
+        display: none !important;
+    }
+    .mobile-members-blocks {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.85rem !important;
+        width: 100% !important;
+    }
+
     /* Committee Cards on Mobile */
     .committees-grid {
         grid-template-columns: 1fr !important;
@@ -2060,7 +2406,7 @@ select option:checked {
         font-size: 0.88rem !important;
     }
 
-    /* Modals as bottom-sheet drawers on mobile */
+    /* Modals as bottom-sheet drawers on mobile with iPhone Home Bar Safe Area */
     .modal-overlay {
         padding: 0 !important;
         align-items: flex-end !important;
@@ -2068,10 +2414,11 @@ select option:checked {
     .modal-window {
         width: 100% !important;
         max-width: 100% !important;
-        border-radius: 22px 22px 0 0 !important;
-        max-height: 90vh !important;
+        border-radius: 24px 24px 0 0 !important;
+        max-height: 92vh !important;
         transform: translateY(100%) !important;
         border-bottom: none !important;
+        padding-bottom: max(0.5rem, env(safe-area-inset-bottom)) !important;
     }
     .modal-overlay.active .modal-window {
         transform: translateY(0) !important;
@@ -2090,7 +2437,7 @@ select option:checked {
         padding: 0.7rem 0.85rem !important;
     }
     .modal-footer {
-        padding: 0.85rem 1.15rem !important;
+        padding: 0.85rem 1.15rem max(1rem, env(safe-area-inset-bottom)) !important;
         display: flex !important;
         flex-direction: row-reverse !important;
         align-items: center !important;

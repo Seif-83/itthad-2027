@@ -141,7 +141,7 @@ function setExecutiveUser(userKey, notify = true) {
             roleBadge.className = 'exec-tag tag-president';
             roleBadge.innerText = 'رئيس اتحاد الطلاب';
         }
-        if (quoteElem) quoteElem.innerText = 'يا سيف، المنصة جاهزة لتسكين الـ 8 أفراد في كل لجنة مع الأمين والأمين المساعد!';
+        if (quoteElem) quoteElem.innerText = 'يا سيف، المنصة جاهزة لتسكين الـ 6 أفراد في كل لجنة مع الأمين والأمين المساعد!';
         if (notify) showToast('مرحباً بك يا سيف عمرو (رئيس الاتحاد)', 'success');
     } else {
         if (btnVice) btnVice.classList.add('active');
@@ -225,7 +225,7 @@ function switchView(viewMode) {
 // ==========================================================================
 function updateStatistics() {
     const totalMembers = appState.members.length;
-    const maxCapacity = 70; // 7 committees * 10 (1 head + 1 vice + 8 members)
+    const maxCapacity = 56; // 7 committees * 8 (1 head + 1 vice + 6 members)
 
     // Heads count (أمناء وأمناء مساعدين)
     const heads = appState.members.filter(m => m.role === 'head' || m.role === 'vice_head');
@@ -234,7 +234,7 @@ function updateStatistics() {
     // Remaining slots
     const remainingSlots = Math.max(0, maxCapacity - totalMembers);
 
-    // Completed committees count (has head + vice_head + 8 members = 10)
+    // Completed committees count (has head + vice_head + 6 members = 8)
     let completedCommittees = 0;
     appState.committees.forEach(comm => {
         const commMembers = appState.members.filter(m => m.committeeId === comm.id);
@@ -359,7 +359,7 @@ function renderCommitteesView() {
                 <!-- Progress Bar -->
                 <div class="comm-progress-bar-container">
                     <div class="comm-progress-labels">
-                        <span>نسبة تسكين الأعضاء الـ 8</span>
+                        <span>نسبة تسكين الأعضاء الـ 6</span>
                         <span>${progressPercent}%</span>
                     </div>
                     <div class="comm-progress-track">
@@ -376,7 +376,7 @@ function renderCommitteesView() {
                 ${renderLeaderSlot(viceHead, comm.id, 'vice_head', 'أمين مساعد اللجنة')}
             </div>
 
-            <!-- Regular Members Section (8 أفراد) -->
+            <!-- Regular Members Section (6 أفراد) -->
             <div class="comm-members-section">
                 <div class="members-section-header">
                     <span class="members-section-title">
@@ -401,7 +401,7 @@ function renderCommitteesView() {
                         <div class="empty-comm-placeholder">
                             <i class="fa-solid fa-user-plus"></i>
                             <p>لا يوجد أعضاء مسجلين حتى الآن</p>
-                            <span>المقاعد الـ 8 شاغرة ومتاحة للتسكين</span>
+                            <span>المقاعد الـ 6 شاغرة ومتاحة للتسكين</span>
                         </div>
                         `
                     }
@@ -409,7 +409,7 @@ function renderCommitteesView() {
                     ${regularCount < maxRegular ? `
                         <button class="btn-add-member-slot ${regularCount === 0 ? 'highlight' : ''}" onclick="openAddMemberModal('${comm.id}', 'member')">
                             <i class="fa-solid fa-plus"></i>
-                            <span>${regularCount === 0 ? 'تسكين أول عضو في اللجنة (المقعد 1 من 8)' : `إضافة عضو جديد (${regularCount + 1} من ${maxRegular})`}</span>
+                            <span>${regularCount === 0 ? 'تسكين أول عضو في اللجنة (المقعد 1 من 6)' : `إضافة عضو جديد (${regularCount + 1} من ${maxRegular})`}</span>
                         </button>
                     ` : ''}
                 </div>
@@ -506,77 +506,198 @@ function renderMemberItem(member, comm) {
 }
 
 // ==========================================================================
-// 2. Master Table View
+// 2. Master Table & Mobile Blocks View
 // ==========================================================================
 function renderMasterTableView() {
     const tbody = document.getElementById('masterTableBody');
-    tbody.innerHTML = '';
+    const mobileContainer = document.getElementById('masterMobileBlocks');
+    
+    if (tbody) tbody.innerHTML = '';
+    if (mobileContainer) mobileContainer.innerHTML = '';
 
     const filtered = getFilteredMembers();
 
+    // Empty state
     if (filtered.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="10" style="text-align: center; padding: 3rem; color: var(--text-muted);">
-                    <i class="fa-solid fa-magnifying-glass" style="font-size: 2rem; margin-bottom: 0.75rem; color: var(--accent-cyan); opacity: 0.5;"></i>
-                    <p>لا توجد بيانات مطابقة لخيارات البحث المحددة</p>
-                </td>
-            </tr>
-        `;
+        if (tbody) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="10" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                        <i class="fa-solid fa-magnifying-glass" style="font-size: 2rem; margin-bottom: 0.75rem; color: var(--accent-cyan); opacity: 0.5;"></i>
+                        <p>لا توجد بيانات مطابقة لخيارات البحث المحددة</p>
+                    </td>
+                </tr>
+            `;
+        }
+        if (mobileContainer) {
+            mobileContainer.innerHTML = `
+                <div class="empty-mobile-blocks">
+                    <i class="fa-solid fa-users-slash"></i>
+                    <p>لا توجد بيانات مطابقة لخيارات البحث</p>
+                    <span>جرّب تعديل كلمة البحث أو تصفية اللجان</span>
+                </div>
+            `;
+        }
         return;
     }
 
     filtered.forEach((member, idx) => {
-        const comm = appState.committees.find(c => c.id === member.committeeId) || { name: 'غير محدد', color: '#94a3b8' };
+        const comm = appState.committees.find(c => c.id === member.committeeId) || { 
+            name: 'غير محدد', 
+            color: '#94a3b8',
+            icon: 'fa-solid fa-folder',
+            colorGradient: 'linear-gradient(135deg, #64748b 0%, #475569 100%)'
+        };
         
-        let roleTag = '';
+        let roleTagDesktop = '';
+        let roleTagMobile = '';
+        let roleClass = 'member';
+        let roleNameAr = 'عضو لجنة';
+
         if (member.role === 'head') {
-            roleTag = `<span class="role-badge-tag head"><i class="fa-solid fa-crown"></i> أمين اللجنة</span>`;
+            roleTagDesktop = `<span class="role-badge-tag head"><i class="fa-solid fa-crown"></i> أمين اللجنة</span>`;
+            roleTagMobile = `<span class="mobile-role-tag head"><i class="fa-solid fa-crown"></i> أمين اللجنة</span>`;
+            roleClass = 'head';
+            roleNameAr = 'أمين اللجنة';
         } else if (member.role === 'vice_head') {
-            roleTag = `<span class="role-badge-tag vice_head"><i class="fa-solid fa-star"></i> أمين مساعد</span>`;
+            roleTagDesktop = `<span class="role-badge-tag vice_head"><i class="fa-solid fa-star"></i> أمين مساعد</span>`;
+            roleTagMobile = `<span class="mobile-role-tag vice_head"><i class="fa-solid fa-star"></i> أمين مساعد</span>`;
+            roleClass = 'vice_head';
+            roleNameAr = 'أمين مساعد';
         } else {
-            roleTag = `<span class="role-badge-tag member"><i class="fa-solid fa-user"></i> عضو</span>`;
+            roleTagDesktop = `<span class="role-badge-tag member"><i class="fa-solid fa-user"></i> عضو</span>`;
+            roleTagMobile = `<span class="mobile-role-tag member"><i class="fa-solid fa-user"></i> عضو لجنة</span>`;
+            roleClass = 'member';
+            roleNameAr = 'عضو لجنة';
         }
 
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td style="font-weight: 700; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">${idx + 1}</td>
-            <td>
-                <div style="font-weight: 700; cursor: pointer; color: var(--text-highlight);" onclick="viewMemberProfile('${member.id}')">
-                    ${escapeHtml(member.name)}
+        const initial = member.name ? member.name.trim().charAt(0) : 'ط';
+
+        // 1. Desktop Table Row
+        if (tbody) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="font-weight: 700; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">${idx + 1}</td>
+                <td>
+                    <div style="font-weight: 700; cursor: pointer; color: var(--text-highlight);" onclick="viewMemberProfile('${member.id}')">
+                        ${escapeHtml(member.name)}
+                    </div>
+                </td>
+                <td>
+                    <span class="comm-tag-inline" style="color: ${comm.color};">
+                        <i class="${comm.icon || 'fa-solid fa-folder'}"></i>
+                        ${comm.name}
+                    </span>
+                </td>
+                <td>${roleTagDesktop}</td>
+                <td>${escapeHtml(member.year || '-')}</td>
+                <td>${escapeHtml(member.department || '-')}</td>
+                <td dir="ltr" style="text-align: right; font-family: 'JetBrains Mono', monospace;">
+                    ${member.phone ? `<a href="tel:${member.phone}" style="color: inherit; text-decoration: none;">${escapeHtml(member.phone)}</a>` : '-'}
+                </td>
+                <td dir="ltr" style="text-align: right; font-family: 'JetBrains Mono', monospace;">${escapeHtml(member.studentCode || '-')}</td>
+                <td style="max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHtml(member.skills || '')}">
+                    ${escapeHtml(member.skills || '-')}
+                </td>
+                <td>
+                    <div style="display: flex; gap: 0.35rem; justify-content: center;">
+                        <button class="btn-mini-action" title="عرض" onclick="viewMemberProfile('${member.id}')">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                        <button class="btn-mini-action" title="تعديل" onclick="openEditMemberModal('${member.id}')">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button class="btn-mini-action danger" title="حذف" onclick="confirmDeleteMember('${member.id}')">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        // 2. Mobile Card Block (عرض كامل بدون اسكرول يمين وشمال على الموبايل والأيفون)
+        if (mobileContainer) {
+            const block = document.createElement('div');
+            block.className = `mobile-member-card role-${roleClass}`;
+            block.style.setProperty('--card-comm-color', comm.color);
+            block.innerHTML = `
+                <div class="mobile-card-header">
+                    <div class="mobile-card-lead">
+                        <div class="mobile-card-avatar" style="background: ${comm.color};">
+                            ${initial}
+                        </div>
+                        <div class="mobile-card-title-box">
+                            <div class="mobile-card-name" onclick="viewMemberProfile('${member.id}')">
+                                ${escapeHtml(member.name)}
+                            </div>
+                            <div class="mobile-card-comm" style="color: ${comm.color};">
+                                <i class="${comm.icon || 'fa-solid fa-folder'}"></i>
+                                <span>${comm.name}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mobile-card-badges">
+                        <span class="mobile-card-idx">#${idx + 1}</span>
+                        ${roleTagMobile}
+                    </div>
                 </div>
-            </td>
-            <td>
-                <span class="comm-tag-inline" style="color: ${comm.color};">
-                    <i class="${comm.icon || 'fa-solid fa-folder'}"></i>
-                    ${comm.name}
-                </span>
-            </td>
-            <td>${roleTag}</td>
-            <td>${escapeHtml(member.year || '-')}</td>
-            <td>${escapeHtml(member.department || '-')}</td>
-            <td dir="ltr" style="text-align: right; font-family: 'JetBrains Mono', monospace;">
-                ${member.phone ? `<a href="tel:${member.phone}" style="color: inherit; text-decoration: none;">${escapeHtml(member.phone)}</a>` : '-'}
-            </td>
-            <td dir="ltr" style="text-align: right; font-family: 'JetBrains Mono', monospace;">${escapeHtml(member.studentCode || '-')}</td>
-            <td style="max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHtml(member.skills || '')}">
-                ${escapeHtml(member.skills || '-')}
-            </td>
-            <td>
-                <div style="display: flex; gap: 0.35rem; justify-content: center;">
-                    <button class="btn-mini-action" title="عرض" onclick="viewMemberProfile('${member.id}')">
-                        <i class="fa-solid fa-eye"></i>
-                    </button>
-                    <button class="btn-mini-action" title="تعديل" onclick="openEditMemberModal('${member.id}')">
-                        <i class="fa-solid fa-pen-to-square"></i>
-                    </button>
-                    <button class="btn-mini-action danger" title="حذف" onclick="confirmDeleteMember('${member.id}')">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
+
+                <div class="mobile-card-body">
+                    <div class="mobile-card-grid">
+                        <div class="mobile-info-item">
+                            <span class="info-label"><i class="fa-solid fa-graduation-cap"></i> الفرقة:</span>
+                            <span class="info-val">${escapeHtml(member.year || '-')}</span>
+                        </div>
+                        <div class="mobile-info-item">
+                            <span class="info-label"><i class="fa-solid fa-microchip"></i> التخصص:</span>
+                            <span class="info-val font-highlight">${escapeHtml(member.department || '-')}</span>
+                        </div>
+                        <div class="mobile-info-item">
+                            <span class="info-label"><i class="fa-solid fa-id-card"></i> الكود:</span>
+                            <span class="info-val mono-val" dir="ltr">${escapeHtml(member.studentCode || '-')}</span>
+                        </div>
+                        <div class="mobile-info-item">
+                            <span class="info-label"><i class="fa-solid fa-phone"></i> الهاتف:</span>
+                            <span class="info-val mono-val" dir="ltr">
+                                ${member.phone ? `<a href="tel:${member.phone}" class="mobile-phone-link">${escapeHtml(member.phone)}</a>` : '-'}
+                            </span>
+                        </div>
+                    </div>
+
+                    ${member.skills ? `
+                        <div class="mobile-card-note">
+                            <i class="fa-solid fa-comment-dots"></i>
+                            <span>${escapeHtml(member.skills)}</span>
+                        </div>
+                    ` : ''}
                 </div>
-            </td>
-        `;
-        tbody.appendChild(tr);
+
+                <div class="mobile-card-footer">
+                    <div class="mobile-card-actions">
+                        <button class="btn-mobile-act view-act" onclick="viewMemberProfile('${member.id}')">
+                            <i class="fa-solid fa-eye"></i>
+                            <span>عرض</span>
+                        </button>
+                        <button class="btn-mobile-act edit-act" onclick="openEditMemberModal('${member.id}')">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                            <span>تعديل</span>
+                        </button>
+                        ${member.phone ? `
+                            <a href="https://wa.me/2${member.phone.replace(/[^0-9]/g, '')}" target="_blank" class="btn-mobile-act wa-act" title="واتساب">
+                                <i class="fa-brands fa-whatsapp"></i>
+                                <span>واتساب</span>
+                            </a>
+                        ` : ''}
+                        <button class="btn-mobile-act del-act" onclick="confirmDeleteMember('${member.id}')">
+                            <i class="fa-solid fa-trash-can"></i>
+                            <span>حذف</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            mobileContainer.appendChild(block);
+        }
     });
 }
 
@@ -740,7 +861,7 @@ function handleSaveMember(e) {
         }
     }
 
-    // Capacity check for regular members (max 8)
+    // Capacity check for regular members (max 6)
     if (role === 'member') {
         const currentRegularMembers = appState.members.filter(m => 
             m.committeeId === committeeId && 
@@ -748,9 +869,9 @@ function handleSaveMember(e) {
             m.id !== appState.editingMemberId
         );
 
-        if (currentRegularMembers.length >= 8) {
+        if (currentRegularMembers.length >= 6) {
             const confirmExtra = confirm(
-                `تنبيه:\nلجنة "${commName}" تضم بالفعل 8 أفراد (الحد الأقصى المعتاد).\nهل ترغب في إضافة هذا العضو كعضو استثنائي؟`
+                `تنبيه:\nلجنة "${commName}" تضم بالفعل 6 أفراد (الحد الأقصى المعتاد).\nهل ترغب في إضافة هذا العضو كعضو استثنائي؟`
             );
             if (!confirmExtra) return;
         }
@@ -1041,8 +1162,8 @@ function printOfficialReport() {
             </tr>
         `;
 
-        // Rows 3-10: 8 Regular Members
-        for (let i = 0; i < 8; i++) {
+        // Rows 3-8: 6 Regular Members
+        for (let i = 0; i < 6; i++) {
             const m = regular[i];
             tableRows += `
                 <tr>
