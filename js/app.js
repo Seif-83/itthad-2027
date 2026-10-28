@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
+function initApp() {
     // 1. Permanent Dark Mode
     setTheme('dark');
 
