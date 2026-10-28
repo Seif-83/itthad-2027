@@ -24,10 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-function initApp() {
-    // 1. Load Theme
-    const savedTheme = localStorage.getItem('cds_union_theme') || 'dark';
-    setTheme(savedTheme);
+    // 1. Permanent Dark Mode
+    setTheme('dark');
 
     // 2. Load Stored Members reliably from localStorage (Immediate offline cache)
     const savedMembers = localStorage.getItem('cds_union_members');
@@ -45,9 +43,8 @@ function initApp() {
         appState.members = [];
     }
 
-    // 3. Load Active Executive User (Safe null checks)
-    const savedUser = localStorage.getItem('cds_union_current_user') || 'president';
-    setExecutiveUser(savedUser, false);
+    // 3. Unified Leadership Active (Seif & Tito together)
+    appState.currentUser = 'joint';
 
     // 4. Render Interface
     renderApp();
@@ -118,74 +115,24 @@ function playAudioFeedback(type = 'success') {
 // ==========================================================================
 // Executive Profile Switcher (سيف عمرو & علي تيتو)
 // ==========================================================================
-function setExecutiveUser(userKey, notify = true) {
-    appState.currentUser = userKey;
-    localStorage.setItem('cds_union_current_user', userKey);
-
-    const btnPresident = document.getElementById('btnSwitchPresident');
-    const btnVice = document.getElementById('btnSwitchVice');
-    const avatarElem = document.getElementById('currentExecAvatar');
-    const nameElem = document.getElementById('currentExecName');
-    const roleBadge = document.getElementById('currentExecRoleBadge');
-    const quoteElem = document.getElementById('currentExecQuote');
-
-    if (userKey === 'president') {
-        if (btnPresident) btnPresident.classList.add('active');
-        if (btnVice) btnVice.classList.remove('active');
-        if (avatarElem) {
-            avatarElem.innerText = 'س';
-            avatarElem.style.background = 'var(--grad-gold)';
-        }
-        if (nameElem) nameElem.innerText = 'سيف عمرو';
-        if (roleBadge) {
-            roleBadge.className = 'exec-tag tag-president';
-            roleBadge.innerText = 'رئيس اتحاد الطلاب';
-        }
-        if (quoteElem) quoteElem.innerText = 'يا سيف، المنصة جاهزة لتسكين الـ 6 أفراد في كل لجنة مع الأمين والأمين المساعد!';
-        if (notify) showToast('مرحباً بك يا سيف عمرو (رئيس الاتحاد)', 'success');
-    } else {
-        if (btnVice) btnVice.classList.add('active');
-        if (btnPresident) btnPresident.classList.remove('active');
-        if (avatarElem) {
-            avatarElem.innerText = 'ع';
-            avatarElem.style.background = 'var(--grad-primary)';
-        }
-        if (nameElem) nameElem.innerText = 'علي تيتو';
-        if (roleBadge) {
-            roleBadge.className = 'exec-tag tag-vice';
-            roleBadge.innerText = 'نائب رئيس اتحاد الطلاب';
-        }
-        if (quoteElem) quoteElem.innerText = 'يا تيتو، كل الصلاحيات مفعلة لإضافة وتعديل ومتابعة أعضاء ولجان الاتحاد!';
-        if (notify) showToast('مرحباً بك يا علي تيتو (نائب رئيس الاتحاد)', 'success');
-    }
+function setExecutiveUser(userKey, notify = false) {
+    appState.currentUser = 'joint';
 }
 
 function getExecutiveName() {
-    return appState.currentUser === 'president' ? 'سيف عمرو' : 'علي تيتو';
+    return 'سيف عمرو & علي تيتو (رئاسة الاتحاد)';
 }
 
 // ==========================================================================
-// Theme Toggle
+// Permanent Theme Enforcement
 // ==========================================================================
-function setTheme(theme) {
-    appState.currentTheme = theme;
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('cds_union_theme', theme);
-
-    const icon = document.getElementById('themeIcon');
-    if (theme === 'light') {
-        icon.className = 'fa-solid fa-sun';
-        icon.style.color = '#f59e0b';
-    } else {
-        icon.className = 'fa-solid fa-moon';
-        icon.style.color = '';
-    }
+function setTheme(theme = 'dark') {
+    appState.currentTheme = 'dark';
+    document.documentElement.setAttribute('data-theme', 'dark');
 }
 
 function toggleTheme() {
-    const nextTheme = appState.currentTheme === 'dark' ? 'light' : 'dark';
-    setTheme(nextTheme);
-    showToast(nextTheme === 'dark' ? 'تم التبديل للوضع الليلي' : 'تم التبديل للوضع النهاري');
+    // Light mode disabled
 }
 
 // ==========================================================================
@@ -248,12 +195,21 @@ function updateStatistics() {
 
     const completionRate = Math.round((totalMembers / maxCapacity) * 100);
 
-    // DOM Elements update
-    document.getElementById('statTotalMembers').innerText = totalMembers;
-    document.getElementById('statHeadsCount').innerText = `${headsCount} / 14`;
-    document.getElementById('statCompletionRate').innerText = `${completionRate}%`;
-    document.getElementById('statCompletedCommitteesCount').innerText = `${completedCommittees} من 7 لجان مكتملة بالكامل`;
-    document.getElementById('statRemainingSlots').innerText = remainingSlots;
+    // DOM Elements update safely
+    const elTotal = document.getElementById('statTotalMembers');
+    if (elTotal) elTotal.innerText = totalMembers;
+
+    const elHeads = document.getElementById('statHeadsCount');
+    if (elHeads) elHeads.innerText = `${headsCount} / 14`;
+
+    const elRate = document.getElementById('statCompletionRate');
+    if (elRate) elRate.innerText = `${completionRate}%`;
+
+    const elCompleted = document.getElementById('statCompletedCommitteesCount');
+    if (elCompleted) elCompleted.innerText = `${completedCommittees} من 7 لجان`;
+
+    const elRemaining = document.getElementById('statRemainingSlots');
+    if (elRemaining) elRemaining.innerText = remainingSlots;
 }
 
 // ==========================================================================

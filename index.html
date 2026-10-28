@@ -56,38 +56,35 @@
                         <span>مزامنة سحابية</span>
                     </div>
 
-                    <!-- Profile Switcher for Seif & Tito -->
-                    <div class="executive-switch-box">
-                        <span class="exec-label">
-                            <i class="fa-solid fa-user-check"></i>
-                            تسجيل الدخول :
-                        </span>
-                        <button class="exec-btn active president-btn" id="btnSwitchPresident" onclick="setExecutiveUser('president')">
-                            <span>سيف عمرو (الرئيس)</span>
-                        </button>
-                        <button class="exec-btn vice-btn" id="btnSwitchVice" onclick="setExecutiveUser('vicePresident')">
-                            <span>علي تيتو (النائب)</span>
-                        </button>
+                    <!-- Unified Presidency Badge (سيف وتيتو قيادة واحدة موحدة) -->
+                    <div class="unified-leadership-badge" title="رئاسة اتحاد الطلاب: سيف عمرو (الرئيس) وعلي تيتو (النائب)">
+                        <div class="leadership-avatars-cluster">
+                            <span class="leader-dot seif" title="سيف عمرو (رئيس الاتحاد)">س</span>
+                            <span class="leader-dot tito" title="علي تيتو (نائب رئيس الاتحاد)">ع</span>
+                        </div>
+                        <div class="leadership-text">
+                            <span class="lead-role"><i class="fa-solid fa-crown" style="color: var(--accent-gold);"></i> رئاسة الاتحاد</span>
+                            <span class="lead-names">سيف عمرو & علي تيتو</span>
+                        </div>
                     </div>
-
-                    <!-- Theme Toggle -->
-                    <button class="btn-icon" id="btnThemeToggle" title="تبديل النمط النهاري / الليلي" onclick="toggleTheme()">
-                        <i class="fa-solid fa-moon" id="themeIcon"></i>
-                    </button>
                 </div>
 
             </div>
 
-            <!-- Executive Greeting & Quick Launch Card -->
+            <!-- Unified Leadership Welcome Card -->
             <div class="exec-welcome-card" id="execWelcomeCard">
                 <div class="exec-welcome-info">
+                    <div class="unified-avatars-large">
+                        <div class="avatar-large seif" title="سيف عمرو">س</div>
+                        <div class="avatar-large tito" title="علي تيتو">ع</div>
+                    </div>
                     <div class="exec-welcome-text">
                         <h2>
-                            مرحباً بك يا <span id="currentExecName">سيف عمرو</span>
-                            <span class="exec-tag tag-president" id="currentExecRoleBadge">رئيس الاتحاد</span>
+                            رئاسة اتحاد طلاب الحاسبات وعلوم البيانات 2027
+                            <span class="exec-tag tag-joint"><i class="fa-solid fa-shield-halved"></i> قيادة مشتركة موحدة</span>
                         </h2>
                         <p id="currentExecQuote">
-                            جاهز لإدارة لجان الاتحاد السبع وتسكين الـ 6 أفراد في كل لجنة مع الأمين والأمين المساعد!
+                            سيف عمرو (الرئيس) • علي تيتو (النائب) | جميع الصلاحيات مفعلة لإدارة وتسكين لجان الاتحاد السبع سحابياً وفورياً
                         </p>
                     </div>
                 </div>
@@ -113,60 +110,68 @@
             </div>
         </header>
 
-        <!-- KPI Stats Dashboard -->
+        <!-- KPI Stats Dashboard (Redesigned for clean display without clipping on iPhone) -->
         <section class="stats-grid" id="statsGrid">
             <div class="stat-card">
-                <div class="stat-icon blue">
-                    <i class="fa-solid fa-users"></i>
+                <div class="stat-card-top">
+                    <div class="stat-icon blue">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div class="stat-value" id="statTotalMembers">0</div>
                 </div>
                 <div class="stat-content">
-                    <div class="stat-label">إجمالي المسجلين في الاتحاد</div>
-                    <div class="stat-value" id="statTotalMembers">0</div>
+                    <div class="stat-label">إجمالي المسجلين</div>
                     <div class="stat-sub">
                         <i class="fa-solid fa-layer-group"></i>
-                        <span id="statCapacityText">السعة الإجمالية: 70 طالب</span>
+                        <span id="statCapacityText">السعة الإجمالية: 56 عضواً</span>
                     </div>
                 </div>
             </div>
 
             <div class="stat-card">
-                <div class="stat-icon gold">
-                    <i class="fa-solid fa-crown"></i>
+                <div class="stat-card-top">
+                    <div class="stat-icon gold">
+                        <i class="fa-solid fa-crown"></i>
+                    </div>
+                    <div class="stat-value font-mono" id="statHeadsCount" dir="ltr">0 / 14</div>
                 </div>
                 <div class="stat-content">
-                    <div class="stat-label">الأمناء والأمناء المساعدين</div>
-                    <div class="stat-value" id="statHeadsCount">0 / 14</div>
+                    <div class="stat-label">الأمناء والمساعدين</div>
                     <div class="stat-sub">
                         <i class="fa-solid fa-check-double"></i>
-                        <span>7 أمناء + 7 أمناء مساعدين</span>
+                        <span>14 منصب قيادي</span>
                     </div>
                 </div>
             </div>
 
             <div class="stat-card">
-                <div class="stat-icon purple">
-                    <i class="fa-solid fa-chart-pie"></i>
+                <div class="stat-card-top">
+                    <div class="stat-icon purple">
+                        <i class="fa-solid fa-chart-pie"></i>
+                    </div>
+                    <div class="stat-value font-mono" id="statCompletionRate" dir="ltr">0%</div>
                 </div>
                 <div class="stat-content">
                     <div class="stat-label">نسبة اكتمال اللجان</div>
-                    <div class="stat-value" id="statCompletionRate">0%</div>
                     <div class="stat-sub">
-                        <i class="fa-solid fa-circle-notch fa-spin"></i>
-                        <span id="statCompletedCommitteesCount">0 من 7 لجان اكتملت</span>
+                        <i class="fa-solid fa-circle-notch"></i>
+                        <span id="statCompletedCommitteesCount">0 من 7 لجان</span>
                     </div>
                 </div>
             </div>
 
             <div class="stat-card">
-                <div class="stat-icon green">
-                    <i class="fa-solid fa-user-clock"></i>
+                <div class="stat-card-top">
+                    <div class="stat-icon green">
+                        <i class="fa-solid fa-user-clock"></i>
+                    </div>
+                    <div class="stat-value" id="statRemainingSlots">56</div>
                 </div>
                 <div class="stat-content">
-                    <div class="stat-label">المقاعد المتبقية في اللجان</div>
-                    <div class="stat-value" id="statRemainingSlots">0</div>
+                    <div class="stat-label">المقاعد الشاغرة</div>
                     <div class="stat-sub">
                         <i class="fa-solid fa-user-plus"></i>
-                        <span>متاح لإضافة المزيد من الطلاب</span>
+                        <span>متاحة للتسكين</span>
                     </div>
                 </div>
             </div>
