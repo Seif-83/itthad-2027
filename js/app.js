@@ -24,44 +24,41 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-const SCHEMA_VERSION = 'cds_union_v5_clean_zero';
-
 function initApp() {
     // 1. Load Theme
     const savedTheme = localStorage.getItem('cds_union_theme') || 'dark';
     setTheme(savedTheme);
 
-    // 2. Load Active Executive User
-    const savedUser = localStorage.getItem('cds_union_current_user') || 'president';
-    setExecutiveUser(savedUser, false);
-
-    // 3. Load Members Data (Zero out old demo data as requested by Seif Amr)
-    const savedSchema = localStorage.getItem('cds_union_schema_version');
-    if (savedSchema !== SCHEMA_VERSION) {
-        // First load with new clean state: start strictly at 0 members
-        appState.members = [];
-        localStorage.setItem('cds_union_schema_version', SCHEMA_VERSION);
-        saveMembersToStorage();
-    } else {
-        const savedMembers = localStorage.getItem('cds_union_members');
-        if (savedMembers) {
-            try {
-                appState.members = JSON.parse(savedMembers);
-            } catch (e) {
+    // 2. Load Stored Members reliably from localStorage (Never wiped on refresh)
+    const savedMembers = localStorage.getItem('cds_union_members');
+    if (savedMembers) {
+        try {
+            appState.members = JSON.parse(savedMembers);
+            if (!Array.isArray(appState.members)) {
                 appState.members = [];
             }
-        } else {
+        } catch (e) {
+            console.error('Error parsing stored members:', e);
             appState.members = [];
-            saveMembersToStorage();
         }
+    } else {
+        appState.members = [];
     }
+
+    // 3. Load Active Executive User (Safe null checks)
+    const savedUser = localStorage.getItem('cds_union_current_user') || 'president';
+    setExecutiveUser(savedUser, false);
 
     // 4. Render Interface
     renderApp();
 }
 
 function saveMembersToStorage() {
-    localStorage.setItem('cds_union_members', JSON.stringify(appState.members));
+    try {
+        localStorage.setItem('cds_union_members', JSON.stringify(appState.members));
+    } catch (e) {
+        console.error('Error saving members to storage:', e);
+    }
 }
 
 // ==========================================================================
@@ -110,24 +107,32 @@ function setExecutiveUser(userKey, notify = true) {
     const quoteElem = document.getElementById('currentExecQuote');
 
     if (userKey === 'president') {
-        btnPresident.classList.add('active');
-        btnVice.classList.remove('active');
-        avatarElem.innerText = 'س';
-        avatarElem.style.background = 'var(--grad-gold)';
-        nameElem.innerText = 'سيف عمرو';
-        roleBadge.className = 'exec-tag tag-president';
-        roleBadge.innerText = 'رئيس اتحاد الطلاب';
-        quoteElem.innerText = 'يا سيف، المنصة جاهزة لتسكين الـ 8 أفراد في كل لجنة مع الأمين والأمين المساعد!';
+        if (btnPresident) btnPresident.classList.add('active');
+        if (btnVice) btnVice.classList.remove('active');
+        if (avatarElem) {
+            avatarElem.innerText = 'س';
+            avatarElem.style.background = 'var(--grad-gold)';
+        }
+        if (nameElem) nameElem.innerText = 'سيف عمرو';
+        if (roleBadge) {
+            roleBadge.className = 'exec-tag tag-president';
+            roleBadge.innerText = 'رئيس اتحاد الطلاب';
+        }
+        if (quoteElem) quoteElem.innerText = 'يا سيف، المنصة جاهزة لتسكين الـ 8 أفراد في كل لجنة مع الأمين والأمين المساعد!';
         if (notify) showToast('مرحباً بك يا سيف عمرو (رئيس الاتحاد)', 'success');
     } else {
-        btnVice.classList.add('active');
-        btnPresident.classList.remove('active');
-        avatarElem.innerText = 'ع';
-        avatarElem.style.background = 'var(--grad-primary)';
-        nameElem.innerText = 'علي تيتو';
-        roleBadge.className = 'exec-tag tag-vice';
-        roleBadge.innerText = 'نائب رئيس اتحاد الطلاب';
-        quoteElem.innerText = 'يا تيتو، كل الصلاحيات مفعلة لإضافة وتعديل ومتابعة أعضاء ولجان الاتحاد!';
+        if (btnVice) btnVice.classList.add('active');
+        if (btnPresident) btnPresident.classList.remove('active');
+        if (avatarElem) {
+            avatarElem.innerText = 'ع';
+            avatarElem.style.background = 'var(--grad-primary)';
+        }
+        if (nameElem) nameElem.innerText = 'علي تيتو';
+        if (roleBadge) {
+            roleBadge.className = 'exec-tag tag-vice';
+            roleBadge.innerText = 'نائب رئيس اتحاد الطلاب';
+        }
+        if (quoteElem) quoteElem.innerText = 'يا تيتو، كل الصلاحيات مفعلة لإضافة وتعديل ومتابعة أعضاء ولجان الاتحاد!';
         if (notify) showToast('مرحباً بك يا علي تيتو (نائب رئيس الاتحاد)', 'success');
     }
 }
