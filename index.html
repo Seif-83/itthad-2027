@@ -124,6 +124,40 @@
                 </div>
             </div>
 
+            <!-- Contact Status 1: Confirmed Members -->
+            <div class="stat-card stat-card-confirmed">
+                <div class="stat-card-top">
+                    <div class="stat-icon green">
+                        <i class="fa-solid fa-user-check"></i>
+                    </div>
+                    <div class="stat-value font-mono" id="statConfirmedMembers" style="color: #10b981;">0</div>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">معانا في الاتحاد فعلياً</div>
+                    <div class="stat-sub">
+                        <i class="fa-solid fa-circle-check" style="color: #10b981;"></i>
+                        <span id="statConfirmedSub">تم التواصل وتأكيدهم</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Status 2: Pending Contact -->
+            <div class="stat-card stat-card-pending">
+                <div class="stat-card-top">
+                    <div class="stat-icon gold">
+                        <i class="fa-solid fa-user-clock"></i>
+                    </div>
+                    <div class="stat-value font-mono" id="statPendingMembers" style="color: #f59e0b;">0</div>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">لم يتم التواصل (لسا)</div>
+                    <div class="stat-sub">
+                        <i class="fa-solid fa-phone-volume" style="color: #f59e0b;"></i>
+                        <span id="statPendingSub">في انتظار المكالمة</span>
+                    </div>
+                </div>
+            </div>
+
             <div class="stat-card">
                 <div class="stat-card-top">
                     <div class="stat-icon gold">
@@ -158,15 +192,15 @@
 
             <div class="stat-card">
                 <div class="stat-card-top">
-                    <div class="stat-icon green">
-                        <i class="fa-solid fa-user-clock"></i>
+                    <div class="stat-icon blue">
+                        <i class="fa-solid fa-user-plus"></i>
                     </div>
                     <div class="stat-value" id="statRemainingSlots">56</div>
                 </div>
                 <div class="stat-content">
                     <div class="stat-label">المقاعد الشاغرة</div>
                     <div class="stat-sub">
-                        <i class="fa-solid fa-user-plus"></i>
+                        <i class="fa-solid fa-layer-group"></i>
                         <span>متاحة للتسكين</span>
                     </div>
                 </div>
@@ -197,6 +231,13 @@
                     <i class="fa-solid fa-magnifying-glass"></i>
                     <input type="text" id="searchInput" class="search-input" placeholder="بحث بالاسم، الكود، الهاتف، المهارة..." oninput="handleSearch()">
                 </div>
+
+                <select id="filterStatus" class="filter-select" onchange="handleFilter()" title="تصفية حسب حالة التواصل">
+                    <option value="all">جميع حالات التواصل</option>
+                    <option value="confirmed">✅ تم التواصل (معانا فعلياً)</option>
+                    <option value="pending">⏳ لم يتم التواصل بعد (لسا)</option>
+                    <option value="declined">❌ اعتذر عن الانضمام</option>
+                </select>
 
                 <select id="filterCommittee" class="filter-select" onchange="handleFilter()">
                     <option value="all">جميع اللجان (7 لجان)</option>
@@ -234,6 +275,7 @@
                             <th>اسم الطالب</th>
                             <th>اللجنة</th>
                             <th>المنصب</th>
+                            <th>حالة التواصل</th>
                             <th>الفرقة الدراسية</th>
                             <th>القسم</th>
                             <th>رقم الهاتف</th>
@@ -330,6 +372,15 @@
                         </div>
 
                         <div class="form-group">
+                            <label class="form-label" for="formContactStatus">حالة التواصل والانضمام *</label>
+                            <select id="formContactStatus" class="form-select" required>
+                                <option value="pending" selected>⏳ لم يتم التواصل بعد (لسا مكلمناهوش)</option>
+                                <option value="confirmed">✅ تم التواصل ومعانا في الاتحاد فعلياً</option>
+                                <option value="declined">❌ تم التواصل واعتذر عن الانضمام</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
                             <label class="form-label" for="formYear">الفرقة الدراسية</label>
                             <select id="formYear" class="form-select">
                                 <option value="الفرقة الأولى">الفرقة الأولى</option>
@@ -415,7 +466,30 @@
                         </a>
                     </div>
 
+                    <!-- Quick Status Box in Profile -->
+                    <div class="profile-status-switch-box">
+                        <div class="profile-status-current">
+                            <span class="profile-detail-label"><i class="fa-solid fa-phone-volume"></i> حالة التواصل والتأكيد:</span>
+                            <span id="profContactStatusBadge"></span>
+                        </div>
+                        <div class="profile-status-buttons-row">
+                            <button type="button" class="btn-status-toggle confirmed" id="profBtnConfirmed" onclick="setMemberContactStatusFromProfile('confirmed')">
+                                <i class="fa-solid fa-circle-check"></i> معانا فعلياً
+                            </button>
+                            <button type="button" class="btn-status-toggle pending" id="profBtnPending" onclick="setMemberContactStatusFromProfile('pending')">
+                                <i class="fa-solid fa-clock"></i> لسا مكلمناهوش
+                            </button>
+                            <button type="button" class="btn-status-toggle declined" id="profBtnDeclined" onclick="setMemberContactStatusFromProfile('declined')">
+                                <i class="fa-solid fa-circle-xmark"></i> اعتذر
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="profile-details-list">
+                        <div class="profile-detail-row">
+                            <span class="profile-detail-label"><i class="fa-solid fa-flag"></i> حالة الانضمام:</span>
+                            <span class="profile-detail-value" id="profContactStatusText">-</span>
+                        </div>
                         <div class="profile-detail-row">
                             <span class="profile-detail-label"><i class="fa-solid fa-people-group"></i> اللجنة التابع لها:</span>
                             <span class="profile-detail-value" id="profCommittee">-</span>

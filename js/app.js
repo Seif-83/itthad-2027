@@ -8,13 +8,15 @@
 let appState = {
     members: [],
     committees: DEFAULT_COMMITTEES,
-    currentUser: 'president', // 'president' (سيف عمرو) or 'vicePresident' (علي تيتو)
+    currentUser: 'joint', // سيف عمرو & علي تيتو
     currentTheme: 'dark',
     currentView: 'committees', // 'committees', 'table', 'hierarchy'
     searchQuery: '',
     filterCommittee: 'all',
     filterRole: 'all',
-    editingMemberId: null
+    filterStatus: 'all', // 'all', 'confirmed', 'pending', 'declined'
+    editingMemberId: null,
+    viewingMemberId: null
 };
 
 // ==========================================================================
@@ -169,11 +171,106 @@ function switchView(viewMode) {
 }
 
 // ==========================================================================
+// Contact Status Helpers & Quick Actions (معانا في الاتحاد / لسا)
+// ==========================================================================
+function getStatusBadgeConfig(status = 'pending') {
+    switch (status) {
+        case 'confirmed':
+            return {
+                key: 'confirmed',
+                label: 'معانا في الاتحاد',
+                fullLabel: 'تم التواصل والتأكيد (معانا فعلياً)',
+                icon: 'fa-solid fa-circle-check',
+                className: 'status-confirmed',
+                textDescription: 'تم التواصل ومعانا في الاتحاد فعلياً ✅'
+            };
+        case 'declined':
+            return {
+                key: 'declined',
+                label: 'اعتذر عن الانضمام',
+                fullLabel: 'تم التواصل ولكن اعتذر عن الانضمام',
+                icon: 'fa-solid fa-circle-xmark',
+                className: 'status-declined',
+                textDescription: 'اعتذر عن الانضمام للاتحاد ❌'
+            };
+        case 'pending':
+        default:
+            return {
+                key: 'pending',
+                label: 'لم يتم التواصل (لسا)',
+                fullLabel: 'لم يتم التواصل بعد (لسا / قيد المتابعة)',
+                icon: 'fa-solid fa-clock',
+                className: 'status-pending',
+                textDescription: 'لم يتم التواصل بعد (لسا) ⏳'
+            };
+    }
+}
+
+function cycleMemberStatus(memberId, event) {
+    if (event) {
+        event.stopPropagation();
+    }
+    const member = appState.members.find(m => m.id === memberId);
+    if (!member) return;
+
+    const current = member.contactStatus || 'pending';
+    let next = 'confirmed';
+    if (current === 'confirmed') {
+        next = 'declined';
+    } else if (current === 'declined') {
+        next = 'pending';
+    } else {
+        next = 'confirmed';
+    }
+
+    setMemberContactStatus(memberId, next);
+}
+
+function setMemberContactStatus(memberId, newStatus) {
+    const member = appState.members.find(m => m.id === memberId);
+    if (!member) return;
+
+    member.contactStatus = newStatus;
+    member.lastUpdatedAt = new Date().toISOString();
+    member.lastUpdatedBy = getExecutiveName();
+
+    saveMembersToStorage();
+    playAudioFeedback('success');
+    renderApp();
+
+    // Refresh profile modal if open
+    const profileModal = document.getElementById('profileModal');
+    if (profileModal && profileModal.classList.contains('active') && appState.viewingMemberId === memberId) {
+        viewMemberProfile(memberId);
+    }
+
+    const cfg = getStatusBadgeConfig(newStatus);
+    showToast(`تم تحديث حالة الطالب "${member.name}": ${cfg.label}`, 'success');
+
+    // Realtime Firebase Cloud Firestore Sync
+    if (window.FirebaseSync && typeof window.FirebaseSync.saveMember === 'function') {
+        window.FirebaseSync.saveMember(member).catch(err => {
+            console.warn("Firebase status sync error:", err);
+        });
+    }
+}
+
+function setMemberContactStatusFromProfile(newStatus) {
+    if (!appState.viewingMemberId) return;
+    setMemberContactStatus(appState.viewingMemberId, newStatus);
+}
+
+// ==========================================================================
 // KPI & Statistics Dashboard
 // ==========================================================================
 function updateStatistics() {
     const totalMembers = appState.members.length;
     const maxCapacity = 56; // 7 committees * 8 (1 head + 1 vice + 6 members)
+
+    // Contact Status Counts
+    const confirmedCount = appState.members.filter(m => (m.contactStatus || 'pending') === 'confirmed').length;
+    const pendingCount = appState.members.filter(m => (m.contactStatus || 'pending') === 'pending').length;
+    const declinedCount = appState.members.filter(m => m.contactStatus === 'declined').length;
 
     // Heads count (أمناء وأمناء مساعدين)
     const heads = appState.members.filter(m => m.role === 'head' || m.role === 'vice_head');
@@ -199,6 +296,26 @@ function updateStatistics() {
     // DOM Elements update safely
     const elTotal = document.getElementById('statTotalMembers');
     if (elTotal) elTotal.innerText = totalMembers;
+
+    const elConfirmed = document.getElementById('statConfirmedMembers');
+    if (elConfirmed) elConfirmed.innerText = confirmedCount;
+
+    const elConfirmedSub = document.getElementById('statConfirmedSub');
+    if (elConfirmedSub) {
+        elConfirmedSub.innerText = totalMembers > 0 
+            ? `${Math.round((confirmedCount / totalMembers) * 100)}% من المسجلين`
+            : 'تم التواصل وتأكيدهم';
+    }
+
+    const elPending = document.getElementById('statPendingMembers');
+    if (elPending) elPending.innerText = pendingCount;
+
+    const elPendingSub = document.getElementById('statPendingSub');
+    if (elPendingSub) {
+        elPendingSub.innerText = declinedCount > 0 
+            ? `في الانتظار (${declinedCount} اعتذر)` 
+            : 'في انتظار المكالمة';
+    }
 
     const elHeads = document.getElementById('statHeadsCount');
     if (elHeads) elHeads.innerText = `${headsCount} / 14`;
@@ -234,6 +351,14 @@ function renderCurrentView() {
 // Helper: Filter members based on search and dropdowns
 function getFilteredMembers() {
     return appState.members.filter(member => {
+        // Status Filter
+        if (appState.filterStatus !== 'all') {
+            const memberStatus = member.contactStatus || 'pending';
+            if (memberStatus !== appState.filterStatus) {
+                return false;
+            }
+        }
+
         // Committee Filter
         if (appState.filterCommittee !== 'all' && member.committeeId !== appState.filterCommittee) {
             return false;
@@ -392,14 +517,25 @@ function renderCommitteesView() {
 function renderLeaderSlot(leader, commId, role, roleTitle) {
     if (leader) {
         const isHead = role === 'head';
+        const status = leader.contactStatus || 'pending';
+        const statusCfg = getStatusBadgeConfig(status);
+
         return `
-            <div class="leader-badge-card ${isHead ? 'role-head' : 'role-vice-head'}">
+            <div class="leader-badge-card ${isHead ? 'role-head' : 'role-vice-head'} status-border-${status}">
                 <div class="leader-info" onclick="viewMemberProfile('${leader.id}')" style="cursor: pointer;">
                     <div class="leader-role-icon">
                         <i class="${isHead ? 'fa-solid fa-crown' : 'fa-solid fa-star'}"></i>
                     </div>
                     <div class="leader-details">
-                        <div class="leader-name" title="${escapeHtml(leader.name)}">${escapeHtml(leader.name)}</div>
+                        <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+                            <span class="leader-name" title="${escapeHtml(leader.name)}">${escapeHtml(leader.name)}</span>
+                            <button class="status-badge-chip mini ${statusCfg.className}" 
+                                    onclick="cycleMemberStatus('${leader.id}', event)" 
+                                    title="${statusCfg.fullLabel} - اضغط للتبديل السريع">
+                                <i class="${statusCfg.icon}"></i>
+                                <span>${statusCfg.label}</span>
+                            </button>
+                        </div>
                         <div class="leader-role-label">${roleTitle} • ${escapeHtml(leader.year || '')}</div>
                     </div>
                 </div>
@@ -433,12 +569,23 @@ function renderLeaderSlot(leader, commId, role, roleTitle) {
 // Render Regular Member Item in Card
 function renderMemberItem(member, comm) {
     const initial = member.name ? member.name.trim().charAt(0) : 'ع';
+    const status = member.contactStatus || 'pending';
+    const statusCfg = getStatusBadgeConfig(status);
+
     return `
-        <div class="member-item">
-            <div class="member-main-info" onclick="viewMemberProfile('${member.id}')" style="cursor: pointer; flex: 1;">
+        <div class="member-item status-border-${status}">
+            <div class="member-main-info" onclick="viewMemberProfile('${member.id}')" style="cursor: pointer; flex: 1; min-width: 0;">
                 <div class="member-avatar-chip">${initial}</div>
                 <div class="member-meta">
-                    <div class="member-name" title="${escapeHtml(member.name)}">${escapeHtml(member.name)}</div>
+                    <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+                        <span class="member-name" title="${escapeHtml(member.name)}">${escapeHtml(member.name)}</span>
+                        <button class="status-badge-chip mini ${statusCfg.className}" 
+                                onclick="cycleMemberStatus('${member.id}', event)" 
+                                title="${statusCfg.fullLabel} - اضغط للتبديل السريع">
+                            <i class="${statusCfg.icon}"></i>
+                            <span>${statusCfg.label}</span>
+                        </button>
+                    </div>
                     <div class="member-sub">${escapeHtml(member.year || 'طالب')} • ${escapeHtml(member.department || '')}</div>
                 </div>
             </div>
@@ -479,7 +626,7 @@ function renderMasterTableView() {
         if (tbody) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="10" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                    <td colspan="11" style="text-align: center; padding: 3rem; color: var(--text-muted);">
                         <i class="fa-solid fa-magnifying-glass" style="font-size: 2rem; margin-bottom: 0.75rem; color: var(--accent-cyan); opacity: 0.5;"></i>
                         <p>لا توجد بيانات مطابقة لخيارات البحث المحددة</p>
                     </td>
@@ -505,6 +652,9 @@ function renderMasterTableView() {
             icon: 'fa-solid fa-folder',
             colorGradient: 'linear-gradient(135deg, #64748b 0%, #475569 100%)'
         };
+
+        const status = member.contactStatus || 'pending';
+        const statusCfg = getStatusBadgeConfig(status);
         
         let roleTagDesktop = '';
         let roleTagMobile = '';
@@ -547,6 +697,14 @@ function renderMasterTableView() {
                     </span>
                 </td>
                 <td>${roleTagDesktop}</td>
+                <td>
+                    <button class="status-badge-chip ${statusCfg.className}" 
+                            onclick="cycleMemberStatus('${member.id}', event)" 
+                            title="${statusCfg.fullLabel} - اضغط للتبديل السريع">
+                        <i class="${statusCfg.icon}"></i>
+                        <span>${statusCfg.label}</span>
+                    </button>
+                </td>
                 <td>${escapeHtml(member.year || '-')}</td>
                 <td>${escapeHtml(member.department || '-')}</td>
                 <td dir="ltr" style="text-align: right; font-family: 'JetBrains Mono', monospace;">
@@ -576,7 +734,7 @@ function renderMasterTableView() {
         // 2. Mobile Card Block (عرض كامل بدون اسكرول يمين وشمال على الموبايل والأيفون)
         if (mobileContainer) {
             const block = document.createElement('div');
-            block.className = `mobile-member-card role-${roleClass}`;
+            block.className = `mobile-member-card role-${roleClass} status-border-${status}`;
             block.style.setProperty('--card-comm-color', comm.color);
             block.innerHTML = `
                 <div class="mobile-card-header">
@@ -597,6 +755,12 @@ function renderMasterTableView() {
                     <div class="mobile-card-badges">
                         <span class="mobile-card-idx">#${idx + 1}</span>
                         ${roleTagMobile}
+                        <button class="status-badge-chip mobile-chip ${statusCfg.className}" 
+                                onclick="cycleMemberStatus('${member.id}', event)" 
+                                title="${statusCfg.fullLabel} - اضغط للتبديل">
+                            <i class="${statusCfg.icon}"></i>
+                            <span>${statusCfg.label}</span>
+                        </button>
                     </div>
                 </div>
 
@@ -639,6 +803,10 @@ function renderMasterTableView() {
                         <button class="btn-mobile-act edit-act" onclick="openEditMemberModal('${member.id}')">
                             <i class="fa-solid fa-pen-to-square"></i>
                             <span>تعديل</span>
+                        </button>
+                        <button class="btn-mobile-act" onclick="cycleMemberStatus('${member.id}', event)" title="تبديل حالة التواصل">
+                            <i class="fa-solid fa-arrows-rotate"></i>
+                            <span>الحالة</span>
                         </button>
                         ${member.phone ? `
                             <a href="https://wa.me/2${member.phone.replace(/[^0-9]/g, '')}" target="_blank" class="btn-mobile-act wa-act" title="واتساب">
@@ -701,6 +869,8 @@ function handleSearch() {
 function handleFilter() {
     appState.filterCommittee = document.getElementById('filterCommittee').value;
     appState.filterRole = document.getElementById('filterRole').value;
+    const elStatus = document.getElementById('filterStatus');
+    if (elStatus) appState.filterStatus = elStatus.value;
     renderCurrentView();
 }
 
@@ -708,9 +878,12 @@ function resetFilters() {
     document.getElementById('searchInput').value = '';
     document.getElementById('filterCommittee').value = 'all';
     document.getElementById('filterRole').value = 'all';
+    const elStatus = document.getElementById('filterStatus');
+    if (elStatus) elStatus.value = 'all';
     appState.searchQuery = '';
     appState.filterCommittee = 'all';
     appState.filterRole = 'all';
+    appState.filterStatus = 'all';
     renderApp();
 }
 
@@ -731,6 +904,10 @@ function openAddMemberModal(committeeId = '', role = 'member') {
 
     // Reset Form
     document.getElementById('memberForm').reset();
+
+    // Default contact status: Pending (لم يتم التواصل بعد)
+    const elStatus = document.getElementById('formContactStatus');
+    if (elStatus) elStatus.value = 'pending';
 
     // Pre-fill if specified
     if (committeeId) {
@@ -763,6 +940,8 @@ function openEditMemberModal(memberId) {
     document.getElementById('formName').value = member.name || '';
     document.getElementById('formCommittee').value = member.committeeId || '';
     document.getElementById('formRole').value = member.role || 'member';
+    const elStatus = document.getElementById('formContactStatus');
+    if (elStatus) elStatus.value = member.contactStatus || 'pending';
     document.getElementById('formYear').value = member.year || 'الفرقة الأولى';
     document.getElementById('formDepartment').value = member.department || 'عام';
     document.getElementById('formPhone').value = member.phone || '';
@@ -781,6 +960,8 @@ function handleSaveMember(e) {
     const name = document.getElementById('formName').value.trim();
     const committeeId = document.getElementById('formCommittee').value;
     const role = document.getElementById('formRole').value;
+    const contactStatusEl = document.getElementById('formContactStatus');
+    const contactStatus = contactStatusEl ? contactStatusEl.value : 'pending';
     const year = document.getElementById('formYear').value;
     const department = document.getElementById('formDepartment').value;
     const phone = document.getElementById('formPhone').value.trim();
@@ -846,6 +1027,7 @@ function handleSaveMember(e) {
                 name,
                 committeeId,
                 role,
+                contactStatus,
                 year,
                 department,
                 phone,
@@ -865,6 +1047,7 @@ function handleSaveMember(e) {
             name,
             committeeId,
             role,
+            contactStatus,
             year,
             department,
             phone,
@@ -926,6 +1109,8 @@ function viewMemberProfile(memberId) {
     const member = appState.members.find(m => m.id === memberId);
     if (!member) return;
 
+    appState.viewingMemberId = memberId;
+
     const comm = appState.committees.find(c => c.id === member.committeeId) || { name: 'غير محدد' };
 
     document.getElementById('profAvatar').innerText = member.name.trim().charAt(0);
@@ -940,6 +1125,34 @@ function viewMemberProfile(memberId) {
         roleBadgeHtml = `<span class="role-badge-tag member" style="font-size: 0.9rem;"><i class="fa-solid fa-user"></i> عضو في ${comm.name}</span>`;
     }
     document.getElementById('profRoleBadge').innerHTML = roleBadgeHtml;
+
+    // Contact Status Configuration & Display
+    const status = member.contactStatus || 'pending';
+    const statusCfg = getStatusBadgeConfig(status);
+
+    const badgeEl = document.getElementById('profContactStatusBadge');
+    if (badgeEl) {
+        badgeEl.innerHTML = `
+            <span class="status-badge-chip ${statusCfg.className}">
+                <i class="${statusCfg.icon}"></i>
+                <span>${statusCfg.label}</span>
+            </span>
+        `;
+    }
+
+    const textEl = document.getElementById('profContactStatusText');
+    if (textEl) {
+        textEl.innerText = statusCfg.textDescription;
+    }
+
+    // Toggle button active states in Profile Modal
+    const btnConfirmed = document.getElementById('profBtnConfirmed');
+    const btnPending = document.getElementById('profBtnPending');
+    const btnDeclined = document.getElementById('profBtnDeclined');
+
+    if (btnConfirmed) btnConfirmed.className = `btn-status-toggle confirmed ${status === 'confirmed' ? 'active' : ''}`;
+    if (btnPending) btnPending.className = `btn-status-toggle pending ${status === 'pending' ? 'active' : ''}`;
+    if (btnDeclined) btnDeclined.className = `btn-status-toggle declined ${status === 'declined' ? 'active' : ''}`;
 
     document.getElementById('profCommittee').innerText = comm.name;
     document.getElementById('profYearDept').innerText = `${member.year || 'غير محدد'} - ${member.department || 'عام'}`;
@@ -1016,6 +1229,7 @@ function exportToExcel() {
         "اسم الطالب",
         "اللجنة",
         "المنصب",
+        "حالة التواصل والانضمام",
         "الفرقة الدراسية",
         "القسم والتخصص",
         "رقم الهاتف",
@@ -1031,11 +1245,17 @@ function exportToExcel() {
         if (m.role === 'head') roleTitle = 'أمين اللجنة';
         if (m.role === 'vice_head') roleTitle = 'أمين مساعد';
 
+        const status = m.contactStatus || 'pending';
+        let statusTitle = 'لم يتم التواصل بعد (لسا)';
+        if (status === 'confirmed') statusTitle = 'معانا في الاتحاد (مؤكد)';
+        if (status === 'declined') statusTitle = 'اعتذر عن الانضمام';
+
         return [
             idx + 1,
             `"${(m.name || '').replace(/"/g, '""')}"`,
             `"${comm.name}"`,
             `"${roleTitle}"`,
+            `"${statusTitle}"`,
             `"${m.year || ''}"`,
             `"${m.department || ''}"`,
             `"\t${m.phone || ''}"`, // \t prevents Excel from truncating leading zeros
@@ -1091,6 +1311,14 @@ function printOfficialReport() {
         const section = document.createElement('div');
         section.className = 'print-comm-section';
 
+        const getPrintStatusText = (m) => {
+            if (!m) return '';
+            const s = m.contactStatus || 'pending';
+            if (s === 'confirmed') return 'معتمد (معانا)';
+            if (s === 'declined') return 'معتذر';
+            return 'قيد التأكيد';
+        };
+
         let tableRows = '';
 
         // Row 1: Head
@@ -1099,6 +1327,7 @@ function printOfficialReport() {
                 <td style="text-align: center; width: 40px;">-</td>
                 <td>${head ? escapeHtml(head.name) : '--- شاغر ---'}</td>
                 <td style="color: #b45309;">أمين اللجنة</td>
+                <td>${getPrintStatusText(head)}</td>
                 <td>${head ? escapeHtml(head.year || '') : ''}</td>
                 <td>${head ? escapeHtml(head.department || '') : ''}</td>
                 <td dir="ltr" style="text-align: center;">${head ? escapeHtml(head.studentCode || '') : ''}</td>
@@ -1112,6 +1341,7 @@ function printOfficialReport() {
                 <td style="text-align: center; width: 40px;">-</td>
                 <td>${vice ? escapeHtml(vice.name) : '--- شاغر ---'}</td>
                 <td style="color: #0369a1;">أمين مساعد</td>
+                <td>${getPrintStatusText(vice)}</td>
                 <td>${vice ? escapeHtml(vice.year || '') : ''}</td>
                 <td>${vice ? escapeHtml(vice.department || '') : ''}</td>
                 <td dir="ltr" style="text-align: center;">${vice ? escapeHtml(vice.studentCode || '') : ''}</td>
@@ -1127,6 +1357,7 @@ function printOfficialReport() {
                     <td style="text-align: center; font-weight: bold;">${i + 1}</td>
                     <td>${m ? escapeHtml(m.name) : '................................................'}</td>
                     <td>عضو لجنة</td>
+                    <td>${getPrintStatusText(m)}</td>
                     <td>${m ? escapeHtml(m.year || '') : ''}</td>
                     <td>${m ? escapeHtml(m.department || '') : ''}</td>
                     <td dir="ltr" style="text-align: center;">${m ? escapeHtml(m.studentCode || '') : ''}</td>
@@ -1143,6 +1374,7 @@ function printOfficialReport() {
                         <th style="width: 40px; text-align: center;">م</th>
                         <th>اسم الطالب بالكامل</th>
                         <th>الصفة / المنصب</th>
+                        <th>حالة الانضمام</th>
                         <th>الفرقة</th>
                         <th>القسم / التخصص</th>
                         <th>الكود الجامعي</th>
