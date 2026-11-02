@@ -209,20 +209,29 @@
 
         <!-- Navigation Toolbar & Filters -->
         <section class="toolbar-container" id="toolbarContainer">
-            <!-- View Mode Switcher -->
-            <div class="view-modes-tabs">
-                <button class="tab-btn active" id="tabCommittees" onclick="switchView('committees')">
-                    <i class="fa-solid fa-grip"></i>
-                    <span>كروت اللجان (7)</span>
-                </button>
-                <button class="tab-btn" id="tabTable" onclick="switchView('table')">
-                    <i class="fa-solid fa-table-list"></i>
-                    <span>جدول الأعضاء الشامل</span>
-                </button>
-                <button class="tab-btn" id="tabHierarchy" onclick="switchView('hierarchy')">
-                    <i class="fa-solid fa-sitemap"></i>
-                    <span>الهيكل التنظيمي</span>
-                </button>
+            <div class="toolbar-top-row">
+                <!-- View Mode Switcher -->
+                <div class="view-modes-tabs">
+                    <button class="tab-btn active" id="tabCommittees" onclick="switchView('committees')">
+                        <i class="fa-solid fa-grip"></i>
+                        <span>كروت اللجان (7)</span>
+                    </button>
+                    <button class="tab-btn" id="tabTable" onclick="switchView('table')">
+                        <i class="fa-solid fa-table-list"></i>
+                        <span>جدول الأعضاء الشامل</span>
+                    </button>
+                    <button class="tab-btn" id="tabHierarchy" onclick="switchView('hierarchy')">
+                        <i class="fa-solid fa-sitemap"></i>
+                        <span>الهيكل التنظيمي</span>
+                    </button>
+                </div>
+
+                <div class="toolbar-actions">
+                    <button class="btn-reset-filters" id="btnResetFilters" onclick="resetFilters()" title="إعادة تعيين كافة الفلاتر والبحث">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span>إعادة ضبط الفلاتر</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Search and Filter Controls -->

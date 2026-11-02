@@ -395,29 +395,128 @@ function renderCommitteesView() {
 
     const filtered = getFilteredMembers();
 
+    // Check if any specific filter (search query, role filter, or status filter) is active
+    const hasDetailFilter = (
+        appState.searchQuery.trim() !== '' || 
+        appState.filterRole !== 'all' || 
+        appState.filterStatus !== 'all'
+    );
+
     appState.committees.forEach(comm => {
         // If a specific committee is filtered in dropdown and it's not this one, skip
         if (appState.filterCommittee !== 'all' && appState.filterCommittee !== comm.id) {
             return;
         }
 
-        // All members in this committee from total database
+        // All members in this committee from total database (for capacity stats)
         const commAllMembers = appState.members.filter(m => m.committeeId === comm.id);
-        
-        // Split roles
-        const head = commAllMembers.find(m => m.role === 'head');
-        const viceHead = commAllMembers.find(m => m.role === 'vice_head');
-        const regularMembers = commAllMembers.filter(m => m.role === 'member');
 
-        const regularCount = regularMembers.length;
-        const maxRegular = comm.maxMembers; // 8 أفراد
-        const isFull = regularCount >= maxRegular;
-        const progressPercent = Math.min(100, Math.round((regularCount / maxRegular) * 100));
+        // Members in this committee that match active filters
+        const commFilteredMembers = filtered.filter(m => m.committeeId === comm.id);
+
+        // If filtering by search/role/status and this committee has NO matches, skip it!
+        if (hasDetailFilter && commFilteredMembers.length === 0) {
+            return;
+        }
+
+        // Determine which members to render based on filtering
+        let head = null;
+        let viceHead = null;
+        let regularMembers = [];
+
+        if (hasDetailFilter) {
+            head = commFilteredMembers.find(m => m.role === 'head');
+            viceHead = commFilteredMembers.find(m => m.role === 'vice_head');
+            regularMembers = commFilteredMembers.filter(m => m.role === 'member');
+        } else {
+            head = commAllMembers.find(m => m.role === 'head');
+            viceHead = commAllMembers.find(m => m.role === 'vice_head');
+            regularMembers = commAllMembers.filter(m => m.role === 'member');
+        }
+
+        const actualRegularCount = commAllMembers.filter(m => m.role === 'member').length;
+        const maxRegular = comm.maxMembers; // 6 أفراد
+        const isFull = actualRegularCount >= maxRegular;
+        const progressPercent = Math.min(100, Math.round((actualRegularCount / maxRegular) * 100));
 
         // Create Card Element
         const card = document.createElement('div');
         card.className = 'committee-card';
         card.style.setProperty('--comm-accent', comm.color);
+
+        // Subtitle / indicator pill
+        let capacityPillHtml = '';
+        if (hasDetailFilter) {
+            capacityPillHtml = `
+                <div class="comm-capacity-pill" style="background: rgba(0, 242, 254, 0.15); color: var(--accent-cyan); border-color: rgba(0, 242, 254, 0.35);">
+                    <i class="fa-solid fa-filter"></i>
+                    <span>${commFilteredMembers.length} مطابق للتصفية</span>
+                </div>
+            `;
+        } else {
+            capacityPillHtml = `
+                <div class="comm-capacity-pill ${isFull ? 'full' : ''}">
+                    <i class="fa-solid fa-users"></i>
+                    <span>${actualRegularCount} / ${maxRegular} أعضاء</span>
+                </div>
+            `;
+        }
+
+        // Leaders Section
+        let leadersSectionHtml = '';
+        if (hasDetailFilter) {
+            const headHtml = head ? renderLeaderSlot(head, comm.id, 'head', 'أمين اللجنة', true) : '';
+            const viceHtml = viceHead ? renderLeaderSlot(viceHead, comm.id, 'vice_head', 'أمين مساعد اللجنة', true) : '';
+            if (headHtml || viceHtml) {
+                leadersSectionHtml = `
+                    <div class="comm-leaders-section">
+                        ${headHtml}
+                        ${viceHtml}
+                    </div>
+                `;
+            }
+        } else {
+            leadersSectionHtml = `
+                <div class="comm-leaders-section">
+                    ${renderLeaderSlot(head, comm.id, 'head', 'أمين اللجنة', false)}
+                    ${renderLeaderSlot(viceHead, comm.id, 'vice_head', 'أمين مساعد اللجنة', false)}
+                </div>
+            `;
+        }
+
+        // Regular Members Section Header
+        let regularMembersHeader = '';
+        if (hasDetailFilter) {
+            regularMembersHeader = `
+                <div class="members-section-header">
+                    <span class="members-section-title">
+                        <i class="fa-solid fa-user-group" style="color: ${comm.color};"></i>
+                        أعضاء اللجنة المطابقين (${regularMembers.length})
+                    </span>
+                    <span style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 700;">
+                        <i class="fa-solid fa-filter"></i> تصفية نشطة
+                    </span>
+                </div>
+            `;
+        } else {
+            regularMembersHeader = `
+                <div class="members-section-header">
+                    <span class="members-section-title">
+                        <i class="fa-solid fa-user-group" style="color: ${comm.color};"></i>
+                        أعضاء اللجنة (${actualRegularCount} من ${maxRegular})
+                    </span>
+                    ${isFull ? `
+                        <span style="font-size: 0.75rem; color: var(--accent-emerald); font-weight: 700;">
+                            <i class="fa-solid fa-circle-check"></i> مقاعد مكتملة
+                        </span>
+                    ` : `
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">
+                            متبقي ${maxRegular - actualRegularCount} مقاعد
+                        </span>
+                    `}
+                </div>
+            `;
+        }
 
         card.innerHTML = `
             <!-- Header -->
@@ -432,10 +531,7 @@ function renderCommitteesView() {
                             <div class="comm-desc">${comm.description}</div>
                         </div>
                     </div>
-                    <div class="comm-capacity-pill ${isFull ? 'full' : ''}">
-                        <i class="fa-solid fa-users"></i>
-                        <span>${regularCount} / ${maxRegular} أعضاء</span>
-                    </div>
+                    ${capacityPillHtml}
                 </div>
 
                 <!-- Progress Bar -->
@@ -451,47 +547,33 @@ function renderCommitteesView() {
             </div>
 
             <!-- Leadership (أمين وأمين مساعد) -->
-            <div class="comm-leaders-section">
-                <!-- Head -->
-                ${renderLeaderSlot(head, comm.id, 'head', 'أمين اللجنة')}
-                <!-- Vice Head -->
-                ${renderLeaderSlot(viceHead, comm.id, 'vice_head', 'أمين مساعد اللجنة')}
-            </div>
+            ${leadersSectionHtml}
 
-            <!-- Regular Members Section (6 أفراد) -->
+            <!-- Regular Members Section -->
             <div class="comm-members-section">
-                <div class="members-section-header">
-                    <span class="members-section-title">
-                        <i class="fa-solid fa-user-group" style="color: ${comm.color};"></i>
-                        أعضاء اللجنة (${regularCount} من ${maxRegular})
-                    </span>
-                    ${isFull ? `
-                        <span style="font-size: 0.75rem; color: var(--accent-emerald); font-weight: 700;">
-                            <i class="fa-solid fa-circle-check"></i> مقاعد مكتملة
-                        </span>
-                    ` : `
-                        <span style="font-size: 0.75rem; color: var(--text-muted);">
-                            متبقي ${maxRegular - regularCount} مقاعد
-                        </span>
-                    `}
-                </div>
+                ${regularMembersHeader}
 
                 <div class="members-list">
                     ${regularMembers.length > 0 ? 
                         regularMembers.map(m => renderMemberItem(m, comm)).join('') : 
-                        `
-                        <div class="empty-comm-placeholder">
-                            <i class="fa-solid fa-user-plus"></i>
-                            <p>لا يوجد أعضاء مسجلين حتى الآن</p>
-                            <span>المقاعد الـ 6 شاغرة ومتاحة للتسكين</span>
-                        </div>
-                        `
+                        (hasDetailFilter ? `
+                            <div style="text-align: center; padding: 1.5rem 0.5rem; color: var(--text-muted); font-size: 0.85rem;">
+                                <i class="fa-solid fa-user-slash" style="opacity: 0.5; margin-left: 0.35rem;"></i>
+                                لا يوجد أعضاء في هذه اللجنة يطابقون خيارات التصفية
+                            </div>
+                        ` : `
+                            <div class="empty-comm-placeholder">
+                                <i class="fa-solid fa-user-plus"></i>
+                                <p>لا يوجد أعضاء مسجلين حتى الآن</p>
+                                <span>المقاعد الـ 6 شاغرة ومتاحة للتسكين</span>
+                            </div>
+                        `)
                     }
                     
-                    ${regularCount < maxRegular ? `
-                        <button class="btn-add-member-slot ${regularCount === 0 ? 'highlight' : ''}" onclick="openAddMemberModal('${comm.id}', 'member')">
+                    ${(!hasDetailFilter && actualRegularCount < maxRegular) ? `
+                        <button class="btn-add-member-slot ${actualRegularCount === 0 ? 'highlight' : ''}" onclick="openAddMemberModal('${comm.id}', 'member')">
                             <i class="fa-solid fa-plus"></i>
-                            <span>${regularCount === 0 ? 'تسكين أول عضو في اللجنة (المقعد 1 من 6)' : `إضافة عضو جديد (${regularCount + 1} من ${maxRegular})`}</span>
+                            <span>${actualRegularCount === 0 ? 'تسكين أول عضو في اللجنة (المقعد 1 من 6)' : `إضافة عضو جديد (${actualRegularCount + 1} من ${maxRegular})`}</span>
                         </button>
                     ` : ''}
                 </div>
@@ -506,15 +588,18 @@ function renderCommitteesView() {
             <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
                 <i class="fa-solid fa-filter-circle-xmark" style="font-size: 3rem; margin-bottom: 1rem; color: var(--accent-cyan); opacity: 0.5;"></i>
                 <h3>لا توجد نتائج مطابقة لبحثك في اللجان</h3>
-                <p style="margin-top: 0.5rem;">جرب تغيير كلمة البحث أو إعادة تعيين الفلاتر</p>
-                <button class="btn-secondary" style="margin: 1.5rem auto 0;" onclick="resetFilters()">إعادة ضبط الفلاتر</button>
+                <p style="margin-top: 0.5rem;">جرب تغيير كلمة البحث أو إعادة تعيين الفلاتر لعرض كافة اللجان والأعضاء</p>
+                <button class="btn-secondary" style="margin: 1.5rem auto 0;" onclick="resetFilters()">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>إعادة ضبط الفلاتر</span>
+                </button>
             </div>
         `;
     }
 }
 
 // Render Leader Slot (Head or Vice Head)
-function renderLeaderSlot(leader, commId, role, roleTitle) {
+function renderLeaderSlot(leader, commId, role, roleTitle, isFiltering = false) {
     if (leader) {
         const isHead = role === 'head';
         const status = leader.contactStatus || 'pending';
@@ -553,6 +638,9 @@ function renderLeaderSlot(leader, commId, role, roleTitle) {
             </div>
         `;
     } else {
+        if (isFiltering) {
+            return '';
+        }
         const isHead = role === 'head';
         return `
             <button class="empty-leader-slot" onclick="openAddMemberModal('${commId}', '${role}')">
